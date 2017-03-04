@@ -67,10 +67,19 @@ int main(int argc, char * argv[])
 
     }
 
+
     //wait for all children to terminate
     printf("Parent waiting for children to terminate\n");
-    wait(NULL);
+    for(int a=0; a < players; a++){
+      printf("At least i'm in the loop\n");
+      pid_t  pid;
+      int status = 0;
+      pid = wait(&status);
+      printf("Process #%d done", a);
+    }
+    //wait(NULL);
     printf("All children have terminated, exiting...\n");
+
     return 0;
 }
 
