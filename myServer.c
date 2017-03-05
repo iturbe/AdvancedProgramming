@@ -25,6 +25,7 @@
 #define DECK_SIZE 52
 #define CARD_SIZE 5
 #define NAME_SIZE 20
+#define HAND_SIZE 100
 
 void usage(char * program);
 void startServer(char * port);
@@ -213,6 +214,8 @@ void communicationLoop(int connection_fd)
     deckSetup();
     int card1 = 0;
     int card2 = 0;
+    int bet = 0;
+    char hand[HAND_SIZE];
 
     while (1)
     {
@@ -234,17 +237,31 @@ void communicationLoop(int connection_fd)
             break;
         }
 
-        if (message_counter == 0) { //initial message
+        if (message_counter == 0) { //deal cards
           sprintf(playerName, "%s", buffer);
-          sprintf(buffer, "Welcome %s, sending you your cards...\n", playerName);
-        } else {
+          strtok(playerName, "\n"); //clean up input (fgets appends a \n at the end)
+          printf("Sending cards to %s...\n", playerName);
+          //card1 = hit();
+          //card2 = hit();
+          //char * strcat(char *dest, const char *src);
+          //sprintf(hand, "%s%s", translate(card1), translate(card2));
+          //sprintf(hand, "%s", "[A♥][K♥]");
+          sprintf(buffer, "%s", "[A♥][K♥]");
+
+        } else if (message_counter == 1) { //receive bet amount, ask to hit or stand
+          //sprintf(bet, "%s", buffer);
+          bet = atoi(buffer);
+          printf("%s has bet %d\n", playerName, bet);
+          sprintf(buffer, "You have bet $%d, %s.", bet, playerName);
+
+        } else if (message_counter > 1) { //hit or stand loop
+
+        } else { //card loop
           printf("The client message #%d: %s\n", message_counter, buffer);
+          sprintf(buffer, "Reply to message #%d\n", message_counter);
         }
 
         message_counter++;
-
-        //REPLY
-        sprintf(buffer, "Reply to message #%d\n", message_counter);
         ///// SEND
         // Send a reply to the client
         if ( send(connection_fd, buffer, strlen(buffer)+1, 0) == -1 )

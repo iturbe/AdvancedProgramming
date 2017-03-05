@@ -98,19 +98,39 @@ void communicationLoop(int connection_fd)
 {
     char buffer[BUFFER_SIZE];
     int message_counter = 0;
-    char name[NAME_SIZE];
+    char hand[BUFFER_SIZE];
+    int sum = 0;
 
     while (1)
     {
         // WRITE
         if (message_counter == 0) { //initial message
-          printf("You are now seated at the table, let the dealer know your name.\n Name: ");
-          fgets(buffer, BUFFER_SIZE, stdin); //wite to buffer
-          sprintf(name, "%s", buffer); //copy to name
-        } else { //next messages
+          printf("You are now seated at the table, let the dealer know your name.\n");
+          printf("Name: ");
+
+        } else if (message_counter == 1) { //got cards, send bet
+          sprintf(hand, "%s", buffer);
+          strtok(hand, "\n"); //clean up input
+          printf("How much would you like to bet?\nAmount: ");
+
+        } else if (message_counter == 2) { //initial hit or stand
+          printf("Would you like to hit or stand?\n");
+          printf("As a reminder, your cards are: %s\n", hand);
+          printf("Choice (h/s): ");
+          printf("%s", buffer);
+
+        } else if (message_counter > 2) { //hit or stand loop
+          //strcat(hand, buffer); //add latest card to hand
+          printf("Your current cards are: %s\n", hand);
+          printf("Would you like to hit or stand?\nChoice (h/s): ");
+
+        } else { //card loop
           printf("Enter a message for the server (empty message to finish): ");
-          fgets(buffer, BUFFER_SIZE, stdin);
+
         }
+
+        // get user input
+        fgets(buffer, BUFFER_SIZE, stdin);
 
         // check if the connection has ended
         if (strlen(buffer) == 1)
@@ -136,7 +156,8 @@ void communicationLoop(int connection_fd)
             perror("ERROR: recv");
             exit(EXIT_FAILURE);
         }
-        printf("The server replied with: %s\n", buffer);
+        //printf("The server replied with: %s\n", buffer);
+        printf("DEALER: %s\n", buffer);
 
     }
 }
