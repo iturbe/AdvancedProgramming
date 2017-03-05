@@ -26,6 +26,8 @@
 #define CARD_SIZE 5
 #define NAME_SIZE 20
 #define HAND_SIZE 100
+#define IN_USE 99
+
 
 void usage(char * program);
 void startServer(char * port);
@@ -36,12 +38,11 @@ void communicationLoop(int connection_fd);
 int deck [DECK_SIZE];
 void deckSetup();
 char * traducirCarta(int x);
-char * translate(int x);
+void translate(int x, char[CARD_SIZE]);
 int hit();
+void printDeck();
 
 int main(int argc, char * argv[]){
-
-    srand(time(NULL)); //needed for radomizing things
 
     printf("\n=== SERVER PROGRAM ===\n");
 
@@ -212,12 +213,14 @@ void communicationLoop(int connection_fd)
     bzero(buffer, BUFFER_SIZE);
 
     deckSetup();
-    int card1 = 0;
-    int card2 = 0;
+    int cardNumber = 0;
+    char cardString[CARD_SIZE];
     int bet = 0;
     char hand[HAND_SIZE];
     char looper;
     char message[BUFFER_SIZE];
+
+    srand(time(NULL)); //needed for radomizing things
 
     while (1)
     {
@@ -243,7 +246,17 @@ void communicationLoop(int connection_fd)
           sprintf(playerName, "%s", buffer); //save player name
           strtok(playerName, "\n"); //clean up input (fgets appends a \n at the end)
           printf("Sending cards to %s...\n", playerName);
-          sprintf(hand, "%s", "[A♥][K♥]");
+
+          //first card
+          cardNumber = hit();
+          translate(cardNumber, cardString);
+          strcat(hand, cardString);
+
+          //second card
+          cardNumber = hit();
+          translate(cardNumber, cardString);
+          strcat(hand, cardString);
+
           sprintf(buffer, "%s", hand); //write to buffer
 
         } else if (message_counter == 1) { //receive bet amount, ask to hit or stand
@@ -255,11 +268,17 @@ void communicationLoop(int connection_fd)
           sscanf(buffer, "%c", &looper);
           if (looper == 'h') { //deal another card
             printf("Sending another card to %s...\n", playerName);
-            strcat(hand, "[Q♥]");
+
+            //get new card
+            cardNumber = hit();
+            translate(cardNumber, cardString);
+            strcat(hand, cardString);
+
+            //no message to send
             sprintf(message, "");
 
           } else if (looper == 's'){
-            printf("Dealing the dealer's cards...\n");
+            printf("%s has decided to stand. Dealing the dealer's cards...\n", playerName);
             //hand doesn't change
             sprintf(message, "finished");
 
@@ -287,8 +306,10 @@ void deckSetup(){
 
   //fill in the deck
   for (int a = 0; a < DECK_SIZE; a++) {
-    deck[a] = a+1;
+    deck[a] = a;
   }
+
+  //printDeck();
 
   //shuffle the deck
   int b, temp;
@@ -304,42 +325,46 @@ void deckSetup(){
 int hit(){
   int z;
   z = (rand() % DECK_SIZE); //if deck[z] is zero, that card is already in use
-  while (deck[z] == 0) //checks the availability of the card
+  while (deck[z] == IN_USE) //checks the availability of the card
   {
       z = (rand() % DECK_SIZE); //asks for another card
   }
   int temp = deck[z];
-  deck[z] = 0; //card was good, now set that one equal to zero
+  deck[z] = IN_USE; //card was good, now set that one 52 so we don't choose it again
   return temp; //return the actual card value
 }
 
 //translates from a numeric value to a nicely-formatted string
-char * translate(int x){
+void translate(int x, char card[CARD_SIZE]){
     int valor;
     static char str[CARD_SIZE];
     //NO MODIFICAR LOS OPERADORES LÓGICOS!
     if (x <= 13) //CORAZONES ♥
     {
         valor = (x % 13);
-        sprintf(str, "[%s♥]", traducirCarta(valor));
+        sprintf(card, "[%s♥]", traducirCarta(valor));
     }
     else if (13 < x && x <= 26) //DIAMANTES ♦
     {
         valor = (x % 13);
-        sprintf(str, "[%s♦]", traducirCarta(valor));
+        sprintf(card, "[%s♦]", traducirCarta(valor));
     }
     else if (26 < x && x <= 39) //ESPADAS ♠
     {
         valor = (x % 13);
-        sprintf(str, "[%s♠]", traducirCarta(valor));
+        sprintf(card, "[%s♠]", traducirCarta(valor));
     }
     else //TREBOLES ♣
     {
         valor = (x % 13);
-        sprintf(str, "[%s♣]", traducirCarta(valor));
+        sprintf(card, "[%s♣]", traducirCarta(valor));
     }
+}
 
-    return str;
+void printDeck(){
+    for (int a = 0; a < DECK_SIZE; a++){
+        printf("%d / ", deck[a]);
+    }
 }
 
 //switches from 0-12 values to cards
@@ -348,46 +373,46 @@ char * traducirCarta(int x)
     switch (x)
     {
         case 0:
-            return " K";
+            return "K";
             break;
         case 1:
-            return " A";
+            return "A";
             break;
         case 2:
-            return " 2";
+            return "2";
             break;
         case 3:
-            return " 3";
+            return "3";
             break;
         case 4:
-            return " 4";
+            return "4";
             break;
         case 5:
-            return " 5";
+            return "5";
             break;
         case 6:
-            return " 6";
+            return "6";
             break;
         case 7:
-            return " 7";
+            return "7";
             break;
         case 8:
-            return " 8";
+            return "8";
             break;
         case 9:
-            return " 9";
+            return "9";
             break;
         case 10:
             return "10";
             break;
         case 11:
-            return " J";
+            return "J";
             break;
         case 12:
-            return " Q";
+            return "Q";
             break;
         default:
-            return " N";
+            return "N";
             break;
     }
 }

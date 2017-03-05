@@ -17,6 +17,7 @@
 #define SERVICE_PORT 8642
 #define BUFFER_SIZE 1024
 #define NAME_SIZE 20
+#define HAND_SIZE 100
 
 void usage(char * program);
 void connectToServer(char * address, char * port);
@@ -98,7 +99,7 @@ void communicationLoop(int connection_fd)
 {
     char buffer[BUFFER_SIZE];
     int message_counter = 0;
-    char hand[BUFFER_SIZE];
+    char hand[HAND_SIZE];
     int sum = 0;
     char message[BUFFER_SIZE];
 
@@ -111,7 +112,6 @@ void communicationLoop(int connection_fd)
 
         } else if (message_counter == 1) { //got cards, send bet
           sprintf(hand, "%s", buffer);
-          //strtok(hand, "\n"); //clean up input
           printf("How much would you like to bet?\nAmount: ");
 
         } else if (message_counter == 2) { //initial hit or stand
