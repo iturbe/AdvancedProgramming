@@ -213,20 +213,12 @@ void communicationLoop(int connection_fd)
     int card1 = hit();
     int card2 = hit();
 
-    sprintf(buffer, "Your cards are: %s and %s\n", translate(card1), translate(card2));
-    if ( send(connection_fd, buffer, strlen(buffer)+1, 0) == -1 )
-    {
-        perror("ERROR: send");
-        exit(EXIT_FAILURE);
-    }
-
     while (1)
     {
+        //LISTEN
         // Clear the buffer
         bzero(buffer, BUFFER_SIZE);
-
-        ///// RECV
-        // Read the request from the client
+        // Read the message from the client
         chars_read = recv(connection_fd, buffer, BUFFER_SIZE, 0);
         // Error when reading
         if ( chars_read == -1 )
@@ -240,13 +232,11 @@ void communicationLoop(int connection_fd)
             printf("Client disconnected\n");
             break;
         }
-
         message_counter++;
         printf("The client message #%d: %s\n", message_counter, buffer);
 
-        // Pretend to take some time to attend the request
-        //sleep(3);
 
+        //REPLY
         sprintf(buffer, "Reply to message #%d\n", message_counter);
         ///// SEND
         // Send a reply to the client
@@ -255,6 +245,7 @@ void communicationLoop(int connection_fd)
             perror("ERROR: send");
             exit(EXIT_FAILURE);
         }
+
     }
 }
 

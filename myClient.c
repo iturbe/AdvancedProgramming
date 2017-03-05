@@ -96,37 +96,37 @@ void connectToServer(char * address, char * port)
 void communicationLoop(int connection_fd)
 {
     char buffer[BUFFER_SIZE];
+    int message_counter = 0;
 
     while (1)
     {
+
+        // WRITE
         printf("Enter a message for the server (empty message to finish): ");
         fgets(buffer, BUFFER_SIZE, stdin);
-
-        // Finish the connection with a string containing only the '\n'
+        // check if the connection has ended
         if (strlen(buffer) == 1)
         {
             printf("Finishing the connection\n");
             break;
         }
-
-        ///// SEND
-        // Send a reply to the client
+        // SEND
         if ( send(connection_fd, buffer, strlen(buffer)+1, 0) == -1 )
         {
             perror("ERROR: send");
             exit(EXIT_FAILURE);
         }
 
+        //LISTEN
         // Clear the buffer
         bzero(buffer, BUFFER_SIZE);
-
-        ///// RECV
-        // Read the request from the client
+        // Read the message from the server
         if ( recv(connection_fd, buffer, BUFFER_SIZE, 0) == -1 )
         {
             perror("ERROR: recv");
             exit(EXIT_FAILURE);
         }
         printf("The server replied with: %s\n", buffer);
+
     }
 }
