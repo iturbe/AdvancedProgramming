@@ -216,6 +216,8 @@ void communicationLoop(int connection_fd)
     int card2 = 0;
     int bet = 0;
     char hand[HAND_SIZE];
+    char looper;
+    char message[BUFFER_SIZE];
 
     while (1)
     {
@@ -238,27 +240,35 @@ void communicationLoop(int connection_fd)
         }
 
         if (message_counter == 0) { //deal cards
-          sprintf(playerName, "%s", buffer);
+          sprintf(playerName, "%s", buffer); //save player name
           strtok(playerName, "\n"); //clean up input (fgets appends a \n at the end)
           printf("Sending cards to %s...\n", playerName);
-          //card1 = hit();
-          //card2 = hit();
-          //char * strcat(char *dest, const char *src);
-          //sprintf(hand, "%s%s", translate(card1), translate(card2));
-          //sprintf(hand, "%s", "[A♥][K♥]");
-          sprintf(buffer, "%s", "[A♥][K♥]");
+          sprintf(hand, "%s", "[A♥][K♥]");
+          sprintf(buffer, "%s", hand); //write to buffer
 
         } else if (message_counter == 1) { //receive bet amount, ask to hit or stand
-          //sprintf(bet, "%s", buffer);
-          bet = atoi(buffer);
+          bet = atoi(buffer); //save bet amount
           printf("%s has bet %d\n", playerName, bet);
-          sprintf(buffer, "You have bet $%d, %s.", bet, playerName);
+          sprintf(buffer, "Confirmed. You have bet $%d, %s.", bet, playerName); //write to buffer
 
-        } else if (message_counter > 1) { //hit or stand loop
+        } else { //hit or stand loop, message_counter > 1
+          sscanf(buffer, "%c", &looper);
+          if (looper == 'h') { //deal another card
+            printf("Sending another card to %s...\n", playerName);
+            strcat(hand, "[Q♥]");
+            sprintf(message, "");
 
-        } else { //card loop
-          printf("The client message #%d: %s\n", message_counter, buffer);
-          sprintf(buffer, "Reply to message #%d\n", message_counter);
+          } else if (looper == 's'){
+            printf("Dealing the dealer's cards...\n");
+            //hand doesn't change
+            sprintf(message, "finished");
+
+          } else {
+            printf("Player must answer either h or s\n");
+            //hand doesn't change
+            sprintf(message, "%s", "Please answer either h or s");
+          }
+          sprintf(buffer, "%s %s", hand, message); //write to buffer
         }
 
         message_counter++;

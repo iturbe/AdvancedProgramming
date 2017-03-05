@@ -100,6 +100,7 @@ void communicationLoop(int connection_fd)
     int message_counter = 0;
     char hand[BUFFER_SIZE];
     int sum = 0;
+    char message[BUFFER_SIZE];
 
     while (1)
     {
@@ -110,22 +111,22 @@ void communicationLoop(int connection_fd)
 
         } else if (message_counter == 1) { //got cards, send bet
           sprintf(hand, "%s", buffer);
-          strtok(hand, "\n"); //clean up input
+          //strtok(hand, "\n"); //clean up input
           printf("How much would you like to bet?\nAmount: ");
 
         } else if (message_counter == 2) { //initial hit or stand
+          printf("DEALER: %s\n", buffer);
           printf("Would you like to hit or stand?\n");
-          printf("As a reminder, your cards are: %s\n", hand);
+          printf("Your current hand is: %s\n", hand);
           printf("Choice (h/s): ");
-          printf("%s", buffer);
 
-        } else if (message_counter > 2) { //hit or stand loop
-          //strcat(hand, buffer); //add latest card to hand
-          printf("Your current cards are: %s\n", hand);
+        } else { //hit or stand loop
+          sscanf(buffer, "%s %s", &hand, &message); //get latest hand and message
+          printf("Your current hand is: %s\n", hand);
+          if (strlen(message) > 0) { //print dealer message, if one was sent
+            printf("DEALER: %s\n", message);
+          }
           printf("Would you like to hit or stand?\nChoice (h/s): ");
-
-        } else { //card loop
-          printf("Enter a message for the server (empty message to finish): ");
 
         }
 
@@ -157,7 +158,8 @@ void communicationLoop(int connection_fd)
             exit(EXIT_FAILURE);
         }
         //printf("The server replied with: %s\n", buffer);
-        printf("DEALER: %s\n", buffer);
+        //printf("DEALER: %s\n", buffer);
+        strtok(buffer, "\n"); //clean up input
 
     }
 }
