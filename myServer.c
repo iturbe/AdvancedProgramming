@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <time.h>
 
 // Include libraries for sockets
 #include <netdb.h>
@@ -21,14 +22,25 @@
 #define SERVICE_PORT 8642
 #define MAX_QUEUE 5
 #define BUFFER_SIZE 1024
+#define DECK_SIZE 52
+#define CARD_SIZE 5
 
 void usage(char * program);
 void startServer(char * port);
 void waitForConnections(int server_fd);
 void communicationLoop(int connection_fd);
 
-int main(int argc, char * argv[])
-{
+//own variables and functions
+int deck [DECK_SIZE];
+void deckSetup();
+char * traducirCarta(int x);
+char * translate(int x);
+int hit();
+
+int main(int argc, char * argv[]){
+
+    srand(time(NULL)); //needed for radomizing things
+
     printf("\n=== SERVER PROGRAM ===\n");
 
     if (argc != 2){
@@ -67,7 +79,6 @@ int main(int argc, char * argv[])
 
     }
 
-
     //wait for all children to terminate
     printf("Parent waiting for children to terminate\n");
     for(int a=0; a < players; a++){
@@ -75,7 +86,10 @@ int main(int argc, char * argv[])
       pid_t  pid;
       int status = 0;
       pid = wait(&status);
-      printf("Process #%d done", a);
+      if (WIFEXITED(status))
+        {
+            printf("Child finished with status: %d\n", WEXITSTATUS(status));
+        }
     }
     //wait(NULL);
     printf("All children have terminated, exiting...\n");
@@ -192,6 +206,20 @@ void communicationLoop(int connection_fd)
     int message_counter = 0;
     int chars_read;
 
+    bzero(buffer, BUFFER_SIZE);
+    printf("Sending cards to player...\n");
+
+    deckSetup();
+    int card1 = hit();
+    int card2 = hit();
+
+    sprintf(buffer, "Your cards are: %s and %s\n", translate(card1), translate(card2));
+    if ( send(connection_fd, buffer, strlen(buffer)+1, 0) == -1 )
+    {
+        perror("ERROR: send");
+        exit(EXIT_FAILURE);
+    }
+
     while (1)
     {
         // Clear the buffer
@@ -227,5 +255,114 @@ void communicationLoop(int connection_fd)
             perror("ERROR: send");
             exit(EXIT_FAILURE);
         }
+    }
+}
+
+void deckSetup(){
+
+  //fill in the deck
+  for (int a = 0; a < DECK_SIZE; a++) {
+    deck[a] = a+1;
+  }
+
+  //shuffle the deck
+  int b, temp;
+  for (int a = 0; a < DECK_SIZE; a++){
+      temp = deck[a]; //swaps each card at least once
+      b = (rand() % DECK_SIZE);
+      deck[a] = deck[b];
+      deck[b] = temp;
+  }
+}
+
+//get a card from the deck
+int hit(){
+  int z;
+  z = (rand() % DECK_SIZE); //if deck[z] is zero, that card is already in use
+  while (deck[z] == 0) //checks the availability of the card
+  {
+      z = (rand() % DECK_SIZE); //asks for another card
+  }
+  int temp = deck[z];
+  deck[z] = 0; //card was good, now set that one equal to zero
+  return temp; //return the actual card value
+}
+
+//translates from a numeric value to a nicely-formatted string
+char * translate(int x){
+    int valor;
+    static char str[CARD_SIZE];
+    //NO MODIFICAR LOS OPERADORES LÓGICOS!
+    if (x <= 13) //CORAZONES ♥
+    {
+        valor = (x % 13);
+        sprintf(str, "[%s♥]", traducirCarta(valor));
+    }
+    else if (13 < x && x <= 26) //DIAMANTES ♦
+    {
+        valor = (x % 13);
+        sprintf(str, "[%s♦]", traducirCarta(valor));
+    }
+    else if (26 < x && x <= 39) //ESPADAS ♠
+    {
+        valor = (x % 13);
+        sprintf(str, "[%s♠]", traducirCarta(valor));
+    }
+    else //TREBOLES ♣
+    {
+        valor = (x % 13);
+        sprintf(str, "[%s♣]", traducirCarta(valor));
+    }
+
+    return str;
+}
+
+//switches from 0-12 values to cards
+char * traducirCarta(int x)
+{
+    switch (x)
+    {
+        case 0:
+            return " K";
+            break;
+        case 1:
+            return " A";
+            break;
+        case 2:
+            return " 2";
+            break;
+        case 3:
+            return " 3";
+            break;
+        case 4:
+            return " 4";
+            break;
+        case 5:
+            return " 5";
+            break;
+        case 6:
+            return " 6";
+            break;
+        case 7:
+            return " 7";
+            break;
+        case 8:
+            return " 8";
+            break;
+        case 9:
+            return " 9";
+            break;
+        case 10:
+            return "10";
+            break;
+        case 11:
+            return " J";
+            break;
+        case 12:
+            return " Q";
+            break;
+        default:
+            return " N";
+            break;
     }
 }
