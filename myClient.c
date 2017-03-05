@@ -16,6 +16,7 @@
 
 #define SERVICE_PORT 8642
 #define BUFFER_SIZE 1024
+#define NAME_SIZE 20
 
 void usage(char * program);
 void connectToServer(char * address, char * port);
@@ -97,13 +98,20 @@ void communicationLoop(int connection_fd)
 {
     char buffer[BUFFER_SIZE];
     int message_counter = 0;
+    char name[NAME_SIZE];
 
     while (1)
     {
-
         // WRITE
-        printf("Enter a message for the server (empty message to finish): ");
-        fgets(buffer, BUFFER_SIZE, stdin);
+        if (message_counter == 0) { //initial message
+          printf("You are now seated at the table, let the dealer know your name.\n Name: ");
+          fgets(buffer, BUFFER_SIZE, stdin); //wite to buffer
+          sprintf(name, "%s", buffer); //copy to name
+        } else { //next messages
+          printf("Enter a message for the server (empty message to finish): ");
+          fgets(buffer, BUFFER_SIZE, stdin);
+        }
+
         // check if the connection has ended
         if (strlen(buffer) == 1)
         {
@@ -116,6 +124,8 @@ void communicationLoop(int connection_fd)
             perror("ERROR: send");
             exit(EXIT_FAILURE);
         }
+
+        message_counter++;
 
         //LISTEN
         // Clear the buffer

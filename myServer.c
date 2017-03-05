@@ -24,6 +24,7 @@
 #define BUFFER_SIZE 1024
 #define DECK_SIZE 52
 #define CARD_SIZE 5
+#define NAME_SIZE 20
 
 void usage(char * program);
 void startServer(char * port);
@@ -205,13 +206,13 @@ void communicationLoop(int connection_fd)
     char buffer[BUFFER_SIZE];
     int message_counter = 0;
     int chars_read;
+    char playerName[NAME_SIZE];
 
     bzero(buffer, BUFFER_SIZE);
-    printf("Sending cards to player...\n");
 
     deckSetup();
-    int card1 = hit();
-    int card2 = hit();
+    int card1 = 0;
+    int card2 = 0;
 
     while (1)
     {
@@ -232,9 +233,15 @@ void communicationLoop(int connection_fd)
             printf("Client disconnected\n");
             break;
         }
-        message_counter++;
-        printf("The client message #%d: %s\n", message_counter, buffer);
 
+        if (message_counter == 0) { //initial message
+          sprintf(playerName, "%s", buffer);
+          sprintf(buffer, "Welcome %s, sending you your cards...\n", playerName);
+        } else {
+          printf("The client message #%d: %s\n", message_counter, buffer);
+        }
+
+        message_counter++;
 
         //REPLY
         sprintf(buffer, "Reply to message #%d\n", message_counter);
