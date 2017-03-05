@@ -112,6 +112,7 @@ void communicationLoop(int connection_fd)
 
         } else if (message_counter == 1) { //got cards, send bet
           sprintf(hand, "%s", buffer);
+          printf("You have received the following cards from the dealer: %s\n", hand);
           printf("How much would you like to bet?\nAmount: ");
 
         } else if (message_counter == 2) { //initial hit or stand

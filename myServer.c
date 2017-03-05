@@ -61,11 +61,11 @@ int main(int argc, char * argv[]){
       pid = fork();
 
       if (pid > 0){ //parent
-        printf("I am the parent, continuing loop...\n");
+        //printf("I am the parent, continuing loop...\n");
         continue;
 
       } else if (pid == 0){ //child
-        printf("child #%d forked\n", a);
+        //printf("child #%d forked\n", a);
 
         int temp = atoi(argv[1]); //convert to int
         temp += a; //add a
@@ -83,9 +83,9 @@ int main(int argc, char * argv[]){
     }
 
     //wait for all children to terminate
-    printf("Parent waiting for children to terminate\n");
+    //printf("Parent waiting for children to terminate\n");
     for(int a=0; a < players; a++){
-      printf("At least i'm in the loop\n");
+      //printf("At least i'm in the loop\n");
       pid_t  pid;
       int status = 0;
       pid = wait(&status);
@@ -245,7 +245,6 @@ void communicationLoop(int connection_fd)
         if (message_counter == 0) { //deal cards
           sprintf(playerName, "%s", buffer); //save player name
           strtok(playerName, "\n"); //clean up input (fgets appends a \n at the end)
-          printf("Sending cards to %s...\n", playerName);
 
           //first card
           cardNumber = hit();
@@ -257,6 +256,9 @@ void communicationLoop(int connection_fd)
           translate(cardNumber, cardString);
           strcat(hand, cardString);
 
+          //initial hand
+          printf("Dealt %s to %s.\n", hand, playerName);
+
           sprintf(buffer, "%s", hand); //write to buffer
 
         } else if (message_counter == 1) { //receive bet amount, ask to hit or stand
@@ -267,12 +269,13 @@ void communicationLoop(int connection_fd)
         } else { //hit or stand loop, message_counter > 1
           sscanf(buffer, "%c", &looper);
           if (looper == 'h') { //deal another card
-            printf("Sending another card to %s...\n", playerName);
 
             //get new card
             cardNumber = hit();
             translate(cardNumber, cardString);
             strcat(hand, cardString);
+
+            printf("Dealt %s to %s.\n", cardString, playerName);
 
             //no message to send
             sprintf(message, "");
